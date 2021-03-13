@@ -6,6 +6,13 @@
 #include <SFML/Graphics.hpp>
 #include <cstring>
 #include <stdio.h>
+#include <SFML/Audio.hpp>
+#include <vector>
+#include "sinewave.h"
+#include <iostream>
+#include <complex>    
+#include <fstream>
+
 
 
 const float pi = 3.14159265;
@@ -43,10 +50,26 @@ void fft(std::vector<signed short> &rawValues, std::vector<double> &output) //mo
     fftw_execute(p);
     for ( i = 0; i < n / 2; i++) {
         output.push_back(sqrt(outputChannel[i][0] * outputChannel[i][0] + outputChannel[i][1] * outputChannel[i][1]));
+        std::complex<double> mycomplex (outputChannel[i][0], outputChannel[i][1]);
+        //std::cout << "The absolute value is "  << std::abs(mycomplex) << '\n';
+        std::array<int,88200> magnitude;
+        magnitude.fill(abs(mycomplex));
+        /*const int size = 5;
+
+        std::ofstream myfile ("data.txt");
+        if (myfile.is_open())
+        {
+            myfile << "This is a line.\n";
+            myfile << "This is another line.\n";
+            for(int count = 0; count < size; count ++){
+                myfile << magnitude[count] << " " ;
+            }
+            myfile.close();
+        */
+
         //std::cout << outputChannel[i][0] << "-" << abs(outputChannel[i][1]) << "i" << "\n";
     }
     output[0] = 0;
-
     delete[] inputChannel;
     delete[] outputChannel;
 }
@@ -90,6 +113,7 @@ void processBuffer()
 
     std::vector<double> output;
     fft(window, output);
+    
     for (i = 0; i < n; i++) {
 
         
@@ -153,8 +177,64 @@ int record(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
     return 0;
 }
 
+/*void fundamental_freq (int magnitude[], int size){
+    int max_count = 0;
+
+    for (int i=0; i<size; i++){
+        int count = 1;
+        for (int j = i+1; j<size; j++)
+            if (magnitude[i] == magnitude[j])
+                count++;
+            if (count > max_count)
+                max_count = count;
+
+    }
+    for (int i=0;i<size;i++){
+     int count=1;
+     for (int j=i+1;j<size;j++)
+        if (magnitude[i]==magnitude[j])
+            count++;
+     if (count==max_count)
+        std::cout << magnitude[i] << endl;
+  } 
+}*/
 int main()
 {
+
+    srand (time(NULL));
+
+
+  	int noteNum[7] = {262, 294, 330, 349, 392, 440, 494}; //frequencies responding to 4th octave
+  	int RandIndex = rand() % 6; //generate a random integer between 0 and 7cd
+
+  	//std::cout << noteNum[RandIndex]<< '\n'; //print the frequency that's playing
+
+
+	sf::SoundBuffer buffer;
+	std::vector<sf::Int16> samples;
+	
+	for (int i = 0; i < 44100; i++) {
+		samples.push_back(sound::SineWave(i, noteNum[RandIndex], 1));
+	}
+
+	buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
+
+	sf::Sound sound;
+	sound.setBuffer(buffer);
+	sound.play();
+
+    /*if (magnitude == noteNum[RandIndex]){
+        std::cout << CORRECT;
+    }*/
+   // std::array<int,88200> magnitude;
+   // magnitude.fill(mycomplex)
+
+    /*int n = sizeof(magnitude)/sizeof(magnitude[0]);
+    for (int i=0; i < n; i++) 
+    std::cout << magnitude[i] <<" ";
+    most_occurred_number(magnitude, n);
+*/
+    
     RtAudio adc;
     if (adc.getDeviceCount() < 1) {
         std::cout << "No audio devices found!\n";
