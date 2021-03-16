@@ -8,10 +8,12 @@
 #include <stdio.h>
 #include <SFML/Audio.hpp>
 #include <vector>
-#include "sinewave.h"
+#include "sound.h"
 #include <iostream>
 #include <complex>    
 #include <fstream>
+#include<sstream>  
+#include <string>
 
 
 
@@ -50,65 +52,40 @@ void fft(std::vector<signed short> &rawValues, std::vector<double> &output) //mo
     fftw_execute(p);
     for ( i = 0; i < n / 2; i++) {
         output.push_back(sqrt(outputChannel[i][0] * outputChannel[i][0] + outputChannel[i][1] * outputChannel[i][1]));
-        std::complex<double> mycomplex (outputChannel[i][0], outputChannel[i][1]);
-        //std::cout << "The absolute value is "  << std::abs(mycomplex) << '\n';
-        std::array<int,88200> magnitude;
-        magnitude.fill(abs(mycomplex));
-        /*const int size = 5;
-
-        std::ofstream myfile ("data.txt");
-        if (myfile.is_open())
-        {
-            myfile << "This is a line.\n";
-            myfile << "This is another line.\n";
-            for(int count = 0; count < size; count ++){
-                myfile << magnitude[count] << " " ;
-            }
-            myfile.close();
-        */
-
-        //std::cout << outputChannel[i][0] << "-" << abs(outputChannel[i][1]) << "i" << "\n";
-    }
+        }
     output[0] = 0;
     delete[] inputChannel;
     delete[] outputChannel;
 }
 
-double computeMean(std::vector<double> &v)
-{
-//    std::cout << v.size() << std::endl;
-    double sum = 0;
-    for (auto it = v.begin(); it != v.end(); it++) {
-        sum += (*it > 0) ? *it : *it*-1;
-    }
-    return sum / v.size();
+int randSound(){
+    srand (time(NULL));
+  	int noteNum[7] = {262, 294, 330, 349, 392, 440, 494}; //frequencies responding to 4th octave
+  	int RandIndex = rand() % 6; //generate a random integer between 0 and 7cd
+    sf::SoundBuffer buffer;
+	std::vector<sf::Int16> samples;
+	
+	for (int i = 0; i < 44100; i++) {
+		samples.push_back(sound::SineWave(i, noteNum[RandIndex], 1));
+	}
+
+	buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
+
+	sf::Sound sound;
+	sound.setBuffer(buffer);
+	sound.play();
+
+    return noteNum[RandIndex];
 }
 
-std::vector<double> returnSubbands(/*std::vector<double> &subbands, */std::vector<double> &input, int bandNumber)
-{
-    int n = input.size();
-    std::vector<double> subbands;
-    int stepWidth = input.size() / bandNumber;
-    int i;
-    int j;
-    double sum;
-    for (i = 0; i < n; i += stepWidth) {
-        sum = 0;
-        for (j = 0; j < stepWidth; j++) {
-            sum += input[i + j];
-        }
-        sum /= stepWidth;
-        subbands.push_back(sum);
-    }
-    return subbands;
-}
 
-void processBuffer()
+
+int processBuffer()
 {
     int i;
     int j;
     int freqMaxIndex = 0;
-    int freqMax = 0;
+    int freqMax = 0;   
     int n = window.size() / 2;
 
     std::vector<double> output;
@@ -117,42 +94,60 @@ void processBuffer()
     for (i = 0; i < n; i++) {
 
         
-        if (i > 0 && i < 200){
+        if (i > 50 && i < 100){
             if (output[i] > output[freqMaxIndex]){
                 freqMaxIndex = i;
                 freqMax = i*44100.0/(n*2);
                 
             }
-        }    
-    std::cout << freqMax << std::endl;
-    //std::cout << i*44100.0/(n*2) << ' ' << (output[i]) << std::endl; //use log10 or not?
-    //std::cout << freqMaxIndex << std::endl;
-    //std::cout << "------------------ " << std::endl; //use log10 or not?
+        }   
+    
+    if ( freqMax > 256 && freqMax < 268 ){
+        freqMax = 262;
+        std::string C4 = std::to_string(freqMax);
+        std::cout << freqMax;
 
+    }
+    else if (freqMax > 288 && freqMax < 300){
+        freqMax = 294;
+        std::string D4 = std::to_string(freqMax);
+        std::cout << freqMax;
 
     }
-    v = returnSubbands(output, bandNumber);
-    if (historyBuffer.size() < bandNumber) {
-        for (i = 0; i < bandNumber; i++) {
-            std::vector<double> temp;
-            temp.push_back(v[i]);
-            historyBuffer.push_back(temp);
-        }
+    else if (freqMax > 324 && freqMax < 336){
+        freqMax = 330;
+        std::string E4 = std::to_string(freqMax);
+        std::cout << freqMax;
+    }  
+    else if (X > 343 && X < 349){
+        X = 349;
+        std::string F4 = std::to_string(X);
+        std::cout << X;
+    }  
+    else if (freqMax > 386 && freqMax < 398){
+        freqMax = 392;
+        std::string G4 = std::to_string(freqMax);
+        std::cout << freqMax;
+    }    
+    else if (freqMax > 334 && freqMax < 446){
+        freqMax = 440;
+        std::string A4 = std::to_string(freqMax);
+    }  
+    else if (freqMax > 482 && freqMax < 500){
+        freqMax = 494;
+        std::string B4 = std::to_string(freqMax);
     }
-    if (historyBuffer[0].size() < historyValues) {
-        for (i = 0; i < bandNumber; i++) {
-            historyBuffer[i].push_back(v[i]);
-        }
-    } else {
-        for (i = 0; i < bandNumber; i++) {
-            historyBuffer[i].erase(historyBuffer[i].begin());
-            historyBuffer[i].push_back(v[i]);
-        }
+    else{
+        std::string no = std::to_string(freqMax);
+        std::cout << "std::cout: " << no << '\n';
+    }  
+    //std::cout << X << std::endl;
     }
-    for (i = 0; i < bandNumber; i++) {
-        meanHistory[i] = computeMean(historyBuffer[i]);
-    }
+
+    return freqMax;
+
 }
+
 
 int record(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
             double streamTime, RtAudioStreamStatus status, void *userData)
@@ -177,88 +172,20 @@ int record(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
     return 0;
 }
 
-/*void fundamental_freq (int magnitude[], int size){
-    int max_count = 0;
-
-    for (int i=0; i<size; i++){
-        int count = 1;
-        for (int j = i+1; j<size; j++)
-            if (magnitude[i] == magnitude[j])
-                count++;
-            if (count > max_count)
-                max_count = count;
-
-    }
-    for (int i=0;i<size;i++){
-     int count=1;
-     for (int j=i+1;j<size;j++)
-        if (magnitude[i]==magnitude[j])
-            count++;
-     if (count==max_count)
-        std::cout << magnitude[i] << endl;
-  } 
-}*/
 int main()
 {
-
-    srand (time(NULL));
-
-
-  	int noteNum[7] = {262, 294, 330, 349, 392, 440, 494}; //frequencies responding to 4th octave
-  	int RandIndex = rand() % 6; //generate a random integer between 0 and 7cd
-
-  	//std::cout << noteNum[RandIndex]<< '\n'; //print the frequency that's playing
-
-
-	sf::SoundBuffer buffer;
-	std::vector<sf::Int16> samples;
-	
-	for (int i = 0; i < 44100; i++) {
-		samples.push_back(sound::SineWave(i, noteNum[RandIndex], 1));
-	}
-
-	buffer.loadFromSamples(&samples[0], samples.size(), 2, 44100);
-
-	sf::Sound sound;
-	sound.setBuffer(buffer);
-	sound.play();
-
-    /*if (magnitude == noteNum[RandIndex]){
-        std::cout << CORRECT;
-    }*/
-   // std::array<int,88200> magnitude;
-   // magnitude.fill(mycomplex)
-
-    /*int n = sizeof(magnitude)/sizeof(magnitude[0]);
-    for (int i=0; i < n; i++) 
-    std::cout << magnitude[i] <<" ";
-    most_occurred_number(magnitude, n);
-*/
-    
+    //access audio device
     RtAudio adc;
     if (adc.getDeviceCount() < 1) {
         std::cout << "No audio devices found!\n";
         return -1;
     }
 
-    std::vector<sf::RectangleShape> bars(bandNumber), historyBars(bandNumber);
-    int i;
-    for (i = 0; i < bandNumber; i++) {
-        bars[i].setFillColor(sf::Color(200, (256 / bandNumber) * i, (256 / bandNumber) * i));
-        historyBars[i].setFillColor(sf::Color(20, 40, 250, 100));
-    }
-
-    sf::CircleShape node(nodeRadius, 48);
-    node.setFillColor(sf::Color::Black);
-    node.setOrigin(nodeRadius, nodeRadius);
-
-    sf::RectangleShape testShape;
-    testShape.setFillColor(sf::Color::Yellow);
-
     RtAudio::StreamParameters parameters;
     parameters.deviceId = adc.getDefaultInputDevice();
     parameters.nChannels = 1;
     parameters.firstChannel = 0;
+
 
     try {
         adc.openStream(NULL, &parameters, RTAUDIO_SINT16,
@@ -272,8 +199,7 @@ int main()
 
     char input;
     std::cout << "\nRecording ... press <enter> to quit.\n";
-//    std::cin.get( input );
-
+    //processBuffer();
     sf::RenderWindow window(sf::VideoMode(1280, 900), "FFT visualiser");
 
     window.setVerticalSyncEnabled(true);
@@ -285,48 +211,9 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        //gen shapes
-        node.setPosition(640, 450);
-        testShape.setSize(sf::Vector2f((int)barWidth, 200));
-        for (i = 0; i < bandNumber; i++) {
-            double height = log10(v[i]) * 50;
-            double historyHeight = log10(meanHistory[i]) * 50;
-            bars[i].setSize(sf::Vector2f(barWidth, height - 50));
-            bars[i].setOrigin(bars[i].getSize().x / 2, bars[i].getSize().y);
-            bars[i].setRotation(angularWidth * i * 180.0 / pi);
-            bars[i].setPosition(node.getPosition().x + nodeRadius * sin(angularWidth * i), node.getPosition().y - nodeRadius * cos(angularWidth * i));
-
-            historyBars[i].setSize(sf::Vector2f(barWidth, historyHeight - 50));
-//            historyBars[i].setPosition(i*(width*2 + 1), 1000 - historyHeight);
-
-            historyBars[i].setOrigin(historyBars[i].getSize().x / 2, historyBars[i].getSize().y);
-            historyBars[i].setRotation(angularWidth * i * 180.0 / pi);
-            historyBars[i].setPosition(node.getPosition().x + nodeRadius * sin(angularWidth * i), node.getPosition().y - nodeRadius * cos(angularWidth * i));
-            if (height > historyHeight * 1.07 || height < 1) {
-                bars[i].setFillColor(sf::Color::Green);
-                node.setFillColor(sf::Color::Green);
-                frameCounter = 0;
-            } else {
-                if (frameCounter > 5) {
-                    bars[i].setFillColor(sf::Color(200, (256 / bandNumber) * i, (256 / bandNumber) * i));
-                    node.setFillColor(sf::Color::Black);
-                }
-            }
-        }
+        
         frameCounter++;
-//        testShape.setSize(sf::Vector2f(400, 400));
-        testShape.setOrigin(testShape.getSize().x / 2, testShape.getSize().y);
-        testShape.setRotation(30);
-        testShape.setPosition(node.getPosition().x + nodeRadius * sin(pi/6), node.getPosition().y - nodeRadius * cos(pi/6));
         window.clear();
-        //draw
-//        window.draw(testShape);
-        window.draw(node);
-        for (i = 0; i < bandNumber; i++) {
-            window.draw(bars[i]);
-            window.draw(historyBars[i]);
-        }
-        window.display();
 
     }
     return 0;
