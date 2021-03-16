@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <SFML/Audio.hpp>
 #include <vector>
-#include "sound.h"
+#include "sinewave.h"
 #include <iostream>
 #include <complex>    
 #include <fstream>
